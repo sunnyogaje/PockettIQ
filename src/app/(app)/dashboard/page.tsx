@@ -11,6 +11,7 @@ import { GoalCard } from "@/components/design-system/goal-card"
 import { EmptyState } from "@/components/design-system/empty-state"
 import { ProgressBar } from "@/components/design-system/progress-bar"
 import { QuickAddTriggerButton } from "@/components/design-system/quick-add-trigger-button"
+import { InstallPrompt } from "@/components/design-system/install-prompt"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toNumber } from "@/lib/currency"
@@ -27,6 +28,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      <InstallPrompt />
+
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {timeOfDayGreeting()}, {user.name} 👋
