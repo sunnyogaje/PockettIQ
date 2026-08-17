@@ -48,6 +48,20 @@ export function categorySpending(
     .sort((a, b) => b.total - a.total)
 }
 
+/**
+ * Friendly, non-shaming budget threshold copy per spec — only returns a
+ * message at 75/90/100%+, null otherwise so callers can skip rendering.
+ */
+export function budgetStatusMessage(
+  percentage: number,
+  categoryName: string
+): string | null {
+  if (percentage >= 100) return `You've reached your ${categoryName} budget.`
+  if (percentage >= 90) return `You're close to your ${categoryName} budget limit.`
+  if (percentage >= 75) return `You've used most of your ${categoryName} budget.`
+  return null
+}
+
 export function budgetRemaining(budgetAmount: number, spent: number): number {
   return budgetAmount - spent
 }
