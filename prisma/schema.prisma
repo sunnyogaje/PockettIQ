@@ -1,0 +1,307 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PaydayType {
+  DAY_OF_MONTH
+  SPECIFIC_DATE
+  NOT_FIXED
+}
+
+enum IncomeFrequency {
+  MONTHLY
+  WEEKLY
+  BIWEEKLY
+  IRREGULAR
+}
+
+enum FinancialGoal {
+  SAVE_MORE
+  CONTROL_SPENDING
+  BUILD_EMERGENCY_FUND
+  PAY_OFF_DEBT
+  TRACK_MY_MONEY
+  SAVE_FOR_SOMETHING_SPECIFIC
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentMethod {
+  CASH
+  BANK
+  CARD
+  TRANSFER
+  OTHER
+}
+
+enum RecurrenceFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum NotificationType {
+  BUDGET_WARNING
+  PAYDAY_REMINDER
+  SAVINGS_GOAL_REMINDER
+  RECURRING_PAYMENT_REMINDER
+  MONTHLY_REPORT_READY
+  BILL_REMINDER
+  GENERAL
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+// ---------- Models ----------
+
+model User {
+  id           String @id @default(cuid())
+  name         String
+  email        String @unique
+  passwordHash String
+
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+
+  currency String @default("NGN")
+  country  String @default("NG")
+
+  paydayType PaydayType?
+  paydayDay  Int?
+  paydayDate DateTime?
+
+  incomeFrequency     IncomeFrequency?
+  incomeSources       String[]         @default([])
+  usualIncomeAmount   Decimal?         @db.Decimal(12, 2)
+  mainGoal            FinancialGoal?
+  onboardingCompleted Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions              Session[]
+  verificationTokens    VerificationToken[]
+  categories            Category[]
+  transactions          Transaction[]
+  budgets               Budget[]
+  savingsGoals          SavingsGoal[]
+  recurringTransactions RecurringTransaction[]
+  reminders             Reminder[]
+  subscription          Subscription?
+  notifications         Notification[]
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  id        String                @id @default(cuid())
+  userId    String
+  tokenHash String                @unique
+  type      VerificationTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+model Category {
+  id        String          @id @default(cuid())
+  userId    String?
+  name      String
+  icon      String
+  group     String
+  type      TransactionType
+  isDefault Boolean         @default(false)
+  createdAt DateTime        @default(now())
+
+  user         User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+  recurring    RecurringTransaction[]
+
+  @@index([userId])
+  @@index([type])
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  userId          String
+  type            TransactionType
+  amount          Decimal         @db.Decimal(12, 2)
+  categoryId      String
+  paymentMethod   PaymentMethod?
+  source          String?
+  description     String?
+  transactionDate DateTime
+
+  recurringTransactionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category             Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  recurringTransaction RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, transactionDate])
+  @@index([userId, categoryId])
+  @@index([userId, type])
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String?
+  amount     Decimal  @db.Decimal(12, 2)
+  month      Int
+  year       Int
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month, year])
+  @@index([userId, year, month])
+}
+
+model SavingsGoal {
+  id              String    @id @default(cuid())
+  userId          String
+  name            String
+  targetAmount    Decimal   @db.Decimal(12, 2)
+  currentAmount   Decimal   @default(0) @db.Decimal(12, 2)
+  targetDate      DateTime?
+  isEmergencyFund Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions SavingsContribution[]
+
+  @@index([userId])
+}
+
+model SavingsContribution {
+  id     String   @id @default(cuid())
+  goalId String
+  amount Decimal  @db.Decimal(12, 2)
+  date   DateTime @default(now())
+  note   String?
+
+  goal SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+}
+
+model RecurringTransaction {
+  id                 String              @id @default(cuid())
+  userId             String
+  type               TransactionType
+  amount             Decimal             @db.Decimal(12, 2)
+  categoryId         String
+  frequency          RecurrenceFrequency
+  startDate          DateTime
+  endDate            DateTime?
+  nextDate           DateTime
+  reminderDaysBefore Int?
+  active             Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+
+  @@index([userId, active])
+  @@index([nextDate])
+}
+
+model Reminder {
+  id        String               @id @default(cuid())
+  userId    String
+  title     String
+  amount    Decimal?             @db.Decimal(12, 2)
+  dueDate   DateTime
+  recurring Boolean              @default(false)
+  frequency RecurrenceFrequency?
+  completed Boolean              @default(false)
+  createdAt DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueDate])
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  plan              SubscriptionPlan   @default(FREE)
+  status            SubscriptionStatus @default(ACTIVE)
+  startDate         DateTime           @default(now())
+  endDate           DateTime?
+  paymentProvider   String?
+  providerReference String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
