@@ -174,6 +174,29 @@ export function financialHealthScore(inputs: FinancialHealthInputs): FinancialHe
   return { score, status }
 }
 
+/** Months remaining until a target date, at least 1 so we never divide by zero. */
+export function monthsUntil(target: Date, from: Date = new Date()): number {
+  const months =
+    (target.getFullYear() - from.getFullYear()) * 12 + (target.getMonth() - from.getMonth())
+  return Math.max(1, months)
+}
+
+export function suggestedMonthlyContribution({
+  targetAmount,
+  currentAmount,
+  targetDate,
+  from = new Date(),
+}: {
+  targetAmount: number
+  currentAmount: number
+  targetDate: Date | null
+  from?: Date
+}): number | null {
+  if (!targetDate) return null
+  const remaining = Math.max(0, targetAmount - currentAmount)
+  return remaining / monthsUntil(targetDate, from)
+}
+
 function clamp01(n: number): number {
   if (Number.isNaN(n)) return 0
   return Math.max(0, Math.min(1, n))
