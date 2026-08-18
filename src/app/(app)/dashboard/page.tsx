@@ -98,8 +98,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <AdPlaceholder placement="dashboard-banner" isPremium={isPremium} />
-
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent>
@@ -214,6 +212,8 @@ export default async function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <AdPlaceholder placement="dashboard-banner" isPremium={isPremium} />
     </div>
   )
 }
