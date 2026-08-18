@@ -3,6 +3,8 @@ import Link from "next/link"
 import { Wallet2, PiggyBank, ArrowLeftRight } from "lucide-react"
 import { requireOnboardedUser } from "@/server/auth/require-user"
 import { getDashboardData } from "@/server/services/dashboard"
+import { getSubscription } from "@/server/services/subscriptions"
+import { AdPlaceholder } from "@/components/design-system/ad-placeholder"
 import { timeOfDayGreeting } from "@/lib/greeting"
 import { formatNaira } from "@/lib/currency"
 import { StatCard } from "@/components/design-system/stat-card"
@@ -22,7 +24,11 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const user = await requireOnboardedUser()
-  const data = await getDashboardData(user.id)
+  const [data, subscription] = await Promise.all([
+    getDashboardData(user.id),
+    getSubscription(user.id),
+  ])
+  const isPremium = subscription?.plan === "PREMIUM"
 
   const totalSpending = data.spendingByCategory.reduce((sum, c) => sum + c.total, 0)
 
@@ -91,6 +97,8 @@ export default async function DashboardPage() {
           <StatCard label="Saved" amount={data.saved} tone="positive" />
         </div>
       </div>
+
+      <AdPlaceholder placement="dashboard-banner" isPremium={isPremium} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

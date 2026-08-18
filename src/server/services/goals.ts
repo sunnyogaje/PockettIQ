@@ -1,5 +1,6 @@
 import "server-only"
 import { db } from "@/server/db"
+import { isPremium, FREE_GOAL_LIMIT } from "@/server/services/subscriptions"
 
 class ValidationError extends Error {}
 
@@ -25,6 +26,15 @@ export async function createGoal(
   userId: string,
   input: { name: string; targetAmount: number; targetDate: Date | null }
 ) {
+  if (!(await isPremium(userId))) {
+    const count = await db.savingsGoal.count({ where: { userId, isEmergencyFund: false } })
+    if (count >= FREE_GOAL_LIMIT) {
+      throw new ValidationError(
+        `Free accounts can have up to ${FREE_GOAL_LIMIT} savings goals. Upgrade to Premium for unlimited goals.`
+      )
+    }
+  }
+
   return db.savingsGoal.create({
     data: {
       userId,

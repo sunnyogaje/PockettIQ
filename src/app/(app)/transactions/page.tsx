@@ -4,9 +4,11 @@ import { ArrowLeftRight } from "lucide-react"
 import { requireOnboardedUser } from "@/server/auth/require-user"
 import { listTransactions } from "@/server/services/transactions"
 import { getCategoriesForUser } from "@/server/services/categories"
+import { getSubscription } from "@/server/services/subscriptions"
 import { toNumber, formatNaira } from "@/lib/currency"
 import { EmptyState } from "@/components/design-system/empty-state"
 import { QuickAddTriggerButton } from "@/components/design-system/quick-add-trigger-button"
+import { AdPlaceholder } from "@/components/design-system/ad-placeholder"
 import { Card, CardContent } from "@/components/ui/card"
 import { TransactionFilters } from "./transaction-filters"
 import { TypeTabs } from "./type-tabs"
@@ -38,7 +40,7 @@ export default async function TransactionsPage({
   const search = get("q")
   const page = Math.max(1, Number(get("page")) || 1)
 
-  const [{ transactions }, expenseCategories, incomeCategories] = await Promise.all([
+  const [{ transactions }, expenseCategories, incomeCategories, subscription] = await Promise.all([
     listTransactions(user.id, {
       type: type || undefined,
       categoryId: categoryId || undefined,
@@ -52,7 +54,9 @@ export default async function TransactionsPage({
     }),
     getCategoriesForUser(user.id, "EXPENSE"),
     getCategoriesForUser(user.id, "INCOME"),
+    getSubscription(user.id),
   ])
+  const isPremium = subscription?.plan === "PREMIUM"
 
   const allCategories = [...expenseCategories, ...incomeCategories]
 
@@ -121,6 +125,10 @@ export default async function TransactionsPage({
           )}
         </CardContent>
       </Card>
+
+      {items.length > 5 && (
+        <AdPlaceholder placement="transactions-banner" isPremium={isPremium} />
+      )}
 
       {items.length >= page * PAGE_SIZE && (
         <LoadMoreLink searchParams={urlSearchParams} page={page} />

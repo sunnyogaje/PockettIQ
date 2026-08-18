@@ -31,11 +31,15 @@ export async function createGoalAction(input: CreateGoalInput): Promise<ActionRe
     }
   }
 
-  await goalsService.createGoal(user.id, {
-    name: parsed.data.name,
-    targetAmount: parsed.data.targetAmount,
-    targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
-  })
+  try {
+    await goalsService.createGoal(user.id, {
+      name: parsed.data.name,
+      targetAmount: parsed.data.targetAmount,
+      targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
+    })
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't create this goal." }
+  }
 
   refresh()
   return { ok: true }

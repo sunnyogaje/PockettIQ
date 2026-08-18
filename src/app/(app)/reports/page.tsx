@@ -2,11 +2,13 @@ import type { Metadata } from "next"
 import { Lightbulb, BarChart3 } from "lucide-react"
 import { requireOnboardedUser } from "@/server/auth/require-user"
 import { getReportData } from "@/server/services/reports"
+import { getSubscription } from "@/server/services/subscriptions"
 import { formatNaira } from "@/lib/currency"
 import { Card, CardContent } from "@/components/ui/card"
 import { StatCard } from "@/components/design-system/stat-card"
 import { FinancialHealthCard } from "@/components/design-system/financial-health-card"
 import { EmptyState } from "@/components/design-system/empty-state"
+import { AdPlaceholder } from "@/components/design-system/ad-placeholder"
 import { CategorySpendingChart } from "@/components/charts/category-spending-chart"
 import { IncomeExpenseChart } from "@/components/charts/income-expense-chart"
 import { SpendingTrendChart } from "@/components/charts/spending-trend-chart"
@@ -17,7 +19,11 @@ export const metadata: Metadata = {
 
 export default async function ReportsPage() {
   const user = await requireOnboardedUser()
-  const report = await getReportData(user.id)
+  const [report, subscription] = await Promise.all([
+    getReportData(user.id),
+    getSubscription(user.id),
+  ])
+  const isPremium = subscription?.plan === "PREMIUM"
 
   const hasAnyData = report.income > 0 || report.expenses > 0
 
@@ -40,6 +46,8 @@ export default async function ReportsPage() {
           </div>
 
           <FinancialHealthCard score={report.health.score} status={report.health.status} />
+
+          <AdPlaceholder placement="reports-banner" isPremium={isPremium} />
 
           {report.insights.length > 0 && (
             <Card>
