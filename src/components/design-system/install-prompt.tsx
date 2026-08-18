@@ -16,6 +16,9 @@ export function InstallPrompt() {
   const [visible, setVisible] = React.useState(false)
   const [variant, setVariant] = React.useState<"android" | "ios" | null>(null)
 
+  // Reads browser-only APIs and subscribes to a browser event — the
+  // standard "sync with an external system" use of an effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     if (isStandalone() || wasRecentlyDismissed()) return
 

@@ -46,6 +46,8 @@ export function EditBudgetSheet({
   const [deleting, setDeleting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // Reset to the budget's current amount each time the sheet reopens.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     if (open) setAmount(budget.amount)
   }, [open, budget.amount])
@@ -99,7 +101,7 @@ export function EditBudgetSheet({
           <div className="flex items-center gap-3">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button type="button" variant="outline" size="icon" disabled={deleting}>
+                <Button type="button" variant="outline" size="icon" disabled={deleting} aria-label="Delete budget">
                   <Trash2 className="size-4 text-destructive" />
                 </Button>
               </AlertDialogTrigger>

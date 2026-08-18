@@ -13,6 +13,9 @@ export function AndroidInstallAction() {
   const [deferredPrompt, setDeferredPrompt] = React.useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled] = React.useState(false)
 
+  // Reads a browser-only API and subscribes to a browser event — the
+  // standard "sync with an external system" use of an effect.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     if (isStandalone()) {
       setInstalled(true)

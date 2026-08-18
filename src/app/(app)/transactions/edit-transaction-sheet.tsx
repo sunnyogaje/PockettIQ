@@ -219,7 +219,7 @@ export function EditTransactionSheet({
           <div className="flex items-center gap-3 pt-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button type="button" variant="outline" size="icon" disabled={deleting}>
+                <Button type="button" variant="outline" size="icon" disabled={deleting} aria-label="Delete transaction">
                   <Trash2 className="size-4 text-destructive" />
                 </Button>
               </AlertDialogTrigger>

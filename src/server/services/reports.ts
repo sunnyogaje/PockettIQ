@@ -47,8 +47,6 @@ function monthlyEquivalent(amount: number, frequency: string): number {
 }
 
 export async function getReportData(userId: string) {
-  const now = new Date()
-
   const [current, previous] = await Promise.all([
     monthTransactions(userId, 0),
     monthTransactions(userId, 1),

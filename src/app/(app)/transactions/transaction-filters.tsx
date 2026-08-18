@@ -122,7 +122,13 @@ export function TransactionFilters({ categories }: { categories: Category[] }) {
         )}
       </div>
 
-      <Button variant="outline" size="icon" className="relative shrink-0" onClick={() => setSheetOpen(true)}>
+      <Button
+        variant="outline"
+        size="icon"
+        className="relative shrink-0"
+        onClick={() => setSheetOpen(true)}
+        aria-label="Filter transactions"
+      >
         <SlidersHorizontal className="size-4" />
         {activeFilterCount > 0 && (
           <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">

@@ -65,6 +65,8 @@ export function QuickAddSheet({
   const router = useRouter()
   const [tab, setTab] = React.useState<"expense" | "income">(defaultTab)
 
+  // Reset to the requested tab each time the sheet reopens.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     if (open) setTab(defaultTab)
   }, [open, defaultTab])

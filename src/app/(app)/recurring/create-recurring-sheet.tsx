@@ -59,6 +59,8 @@ export function CreateRecurringSheet({
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // Reset the form fields each time the sheet reopens.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     if (open) {
       setType("EXPENSE")

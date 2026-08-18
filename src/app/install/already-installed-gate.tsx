@@ -7,6 +7,10 @@ import { isStandalone } from "@/lib/pwa"
 export function AlreadyInstalledGate({ children }: { children: React.ReactNode }) {
   const [standalone, setStandalone] = React.useState<boolean | null>(null)
 
+  // Reads a browser-only API (no SSR equivalent), so this can't be computed
+  // synchronously during render — this is the standard "sync with an
+  // external system" use of an effect, not state mirroring a prop.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => {
     setStandalone(isStandalone())
   }, [])
